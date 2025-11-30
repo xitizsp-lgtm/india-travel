@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>India Trip Generator & Itinerary Planner</title>
-    <link rel="stylesheet" href="common.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: "Inter", sans-serif;
-            background-color: rgb(9, 77, 102);/* Light gray background */
+            background-color: #f3f4f6; /* Light gray background */
         }
         .loader {
             border: 4px solid #f3f3f3;
@@ -87,7 +86,7 @@
     </style>
 </head>
 <body class="min-h-screen p-4 sm:p-8 flex items-start justify-center">
-    <div>
+
     <div class="w-full max-w-7xl bg-white shadow-2xl rounded-2xl p-6 md:p-12 border-t-8 border-violet-600 grid grid-cols-1 lg:grid-cols-2 gap-10">
         
         <!-- Left Column: Travel Planner Form -->
@@ -181,8 +180,11 @@
 
     <script>
         // Configuration for the Gemini API
-        const API_KEY = ""; // Canvas will provide this at runtime
-        const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${AIzaSyCg4_K86m1Q5Fag5CN3WBxnwBVRBX01bCo}`;
+        // 🚨 IMPORTANT: When running locally (outside of Canvas), you must replace the
+        // placeholder string below with your actual Gemini API key for the API calls to work.
+        // DO NOT share your API key publicly.
+        const API_KEY = "AIzaSyBurJL7O6Knz7niSVJePfzj6T3RmJGvI90"; // <-- Placeholder for your API Key 
+        const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
 
         document.addEventListener('DOMContentLoaded', () => {
             const displayTitle = document.getElementById('display-panel-title');
@@ -368,6 +370,7 @@
                     console.error("API response lacked content candidate:", result);
                 }
             };
+        
 
             const generateItinerary = async (event) => {
                 event.preventDefault(); // Prevent form default submission
@@ -424,6 +427,16 @@
                     systemInstruction: { parts: [{ text: systemPrompt }] },
                 };
                 
+                // Check if API key is missing before trying to fetch
+                const PLACEHOLDER_KEY = "YOUR_GEMINI_API_KEY_HERE";
+                if (API_KEY === "" || API_KEY === PLACEHOLDER_KEY) { 
+                    displayTitle.textContent = "API Key Required";
+                    displayContent.innerHTML = "<p class='text-red-500 text-center mt-4 font-bold'>The application requires a valid API key to function.</p><p class='text-center mt-2'>Please replace the placeholder 'YOUR_GEMINI_API_KEY_HERE' in the JavaScript code with your actual Gemini API key.</p>";
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Generate Itinerary';
+                    return;
+                }
+
                 try {
                      const response = await fetchWithRetry(TEXT_API_URL, {
                         method: 'POST',
@@ -438,7 +451,7 @@
                 } catch (error) {
                     console.error("API Itinerary Fetch Error:", error);
                     displayTitle.textContent = "Trip Generation Failed";
-                    displayContent.innerHTML = `<p class='text-red-500 text-center mt-4'>Error creating the trip plan: ${error.message}. This might be a temporary API or network issue. Please try again in a moment.</p>`;
+                    displayContent.innerHTML = `<p class='text-red-500 text-center mt-4'>Error creating the trip plan: ${error.message}.</p><p class='text-center mt-2'>Please double-check that your Gemini API key is valid and correctly placed in the script section.</p>`;
                     citationContainer.textContent = "";
                 } finally {
                     generateBtn.disabled = false;
@@ -453,11 +466,5 @@
             displayTitle.textContent = defaultMessage;
         });
     </script>
-    </div>
-    <div>
-     <a class= "buton" href="index.html" padding-left="50px">
-      <button class="button">🔙 Return to homepage</button>
-    </a>
-    </div>
 </body>
 </html>
