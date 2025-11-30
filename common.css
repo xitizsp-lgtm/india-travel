@@ -1,0 +1,83 @@
+body {
+  font-family: sans-serif;
+  margin: 20px;
+  background-color: rgb(9, 77, 102);
+}
+.ANI {
+  width: 100%;
+  max-width: 300px;
+  background: rgba(61, 56, 56, 0.2);
+  display: flex;
+  border-radius: 50px;
+  padding: 10px 20px;
+  backdrop-filter: saturate(50%);
+  color: #ffffff;
+  font-size:medium;
+  align-items: center;
+}
+.ANIL {
+  width: 100%;
+  max-width: 700px;
+  background: rgba(61, 56, 56, 0.2);
+  display: flex;
+  border-radius: 50px;
+  padding: 10px 20px;
+  backdrop-filter: saturate(50%);
+  color: #ffffff;
+  font-size:medium;
+  align-items: center;
+}
+.contuedo{
+  padding-top: 30px;
+  height: 1900px;
+  width: 1200px;
+ }
+.carousel{
+  display:grid;
+  grid-auto-flow:column;
+  scroll-behavior: auto;
+  gap: 2.4rem;
+  overflow-y: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+ }
+.carousel::-webkit-scrollbar{
+  display: none;
+ }
+.card{
+  scroll-snap-align: start;
+  border-radius: 30px;
+  min-height: 250px;
+  min-width: 350px;
+  display: flex;
+  align-items:  center;
+  justify-content: center;
+   
+}
+.card:nth-child(odd){
+   background: linear-gradient(-229deg, rgb(158, 50, 117), rgb(91, 94, 255));
+   padding-top: 30px;
+   padding-right: 10px;
+   padding-left: 10px;
+}
+.card:nth-child(even){
+   background: linear-gradient(-229deg, rgb(158, 106, 50), rgb(91, 94, 255));
+   padding-top: 30px;
+   padding-right: 10px;
+   padding-left: 10px;
+}
+.button{
+   width: 100px;
+   height: 50px;
+   background-color: rgb(2, 162, 125);
+   font-family: sans-serif;
+   text-decoration-color: aquamarine;
+}
+.buton{
+ padding-top: 10px;  
+}
+.img{
+  width: 300px;
+  height: 250px;
+}

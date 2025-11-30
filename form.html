@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Trip Generator & Itinerary Planner</title>
+    <link rel="stylesheet" href="common.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: rgb(9, 77, 102);/* Light gray background */
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #EC4899; /* Pink-500 */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Custom scrollbar style */
+        #display-panel-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        #display-panel-content::-webkit-scrollbar-thumb {
+            background-color: #a78bfa; /* Violet-400 */
+            border-radius: 4px;
+        }
+        #display-panel-content::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+        /* Custom styles for the Itinerary cards */
+        .itinerary-day-card {
+            background-color: #f8fafc; /* Slate-50 */
+            border-left: 5px solid #EC4899; /* Pink-500 */
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            opacity: 0;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        /* Animation class for content loading */
+        .content-fade-in {
+            animation: fadeInFromBelow 0.5s ease-out forwards;
+        }
+        @keyframes fadeInFromBelow {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* Clean list styling */
+        .clean-list {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        .budget-list {
+            list-style-type: none; 
+            padding-left: 0;
+            line-height: 1.8;
+            border: 1px solid #e5e7eb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background-color: #f9faff;
+        }
+        .budget-list li {
+            border-bottom: 1px dotted #f3e8ff;
+            padding: 0.25rem 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .budget-list li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8 flex items-start justify-center">
+    <div>
+    <div class="w-full max-w-7xl bg-white shadow-2xl rounded-2xl p-6 md:p-12 border-t-8 border-violet-600 grid grid-cols-1 lg:grid-cols-2 gap-10">
+        
+        <!-- Left Column: Travel Planner Form -->
+        <div class="lg:col-span-1 bg-gray-50 p-6 rounded-xl shadow-lg border border-gray-100">
+            <h2 class="text-3xl font-extrabold text-violet-700 mb-4 border-b-2 border-pink-300 pb-2 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Trip Generator
+            </h2>
+            <p class="text-sm text-gray-600 mb-6">
+                Define your ideal Indian adventure below and click "Generate Itinerary".
+            </p>
+
+            <form id="travel-form" class="space-y-4">
+                <!-- Inputs using modern styling -->
+                
+                <div class="input-group">
+                    <label for="travel-days" class="block text-sm font-semibold text-gray-700">Days of Travel</label>
+                    <input type="number" id="travel-days" value="5" min="1" required
+                           class="mt-1 block w-full rounded-lg border-2 border-violet-200 shadow-sm p-3 focus:border-violet-500 focus:ring-violet-500 transition-colors"
+                           placeholder="Number of days">
+                </div>
+
+                <div class="input-group">
+                    <label for="start-location" class="block text-sm font-semibold text-gray-700">Starting Location (City/State)</label>
+                    <input type="text" id="start-location" placeholder="e.g., Delhi or Mumbai" required
+                           class="mt-1 block w-full rounded-lg border-2 border-violet-200 shadow-sm p-3 focus:border-violet-500 focus:ring-violet-500 transition-colors">
+                </div>
+
+                <div class="input-group">
+                    <label for="destinations" class="block text-sm font-semibold text-gray-700">Destinations (Comma-separated)</label>
+                    <textarea id="destinations" rows="2" placeholder="e.g., Jaipur, Agra, Udaipur" required
+                              class="mt-1 block w-full rounded-lg border-2 border-violet-200 shadow-sm p-3 focus:border-violet-500 focus:ring-violet-500 transition-colors"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="adults" class="block text-sm font-semibold text-gray-700">Adults</label>
+                        <input type="number" id="adults" value="2" min="1" required
+                               class="mt-1 block w-full rounded-lg border-2 border-violet-200 shadow-sm p-3 focus:border-violet-500 focus:ring-violet-500 transition-colors">
+                    </div>
+                    <div class="input-group">
+                        <label for="children" class="block text-sm font-semibold text-gray-700">Children (0-12)</label>
+                        <input type="number" id="children" value="0" min="0" required
+                               class="mt-1 block w-full rounded-lg border-2 border-violet-200 shadow-sm p-3 focus:border-violet-500 focus:ring-violet-500 transition-colors">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="budget" class="block text-sm font-semibold text-gray-700">Max Budget (Total)</label>
+                    <input type="text" id="budget" placeholder="e.g., INR 40,000 total" required
+                           class="mt-1 block w-full rounded-lg border-2 border-violet-200 shadow-sm p-3 focus:border-violet-500 focus:ring-violet-500 transition-colors">
+                </div>
+
+                <div class="input-group">
+                    <label for="extra-comments" class="block text-sm font-semibold text-gray-700">Preferences</label>
+                    <textarea id="extra-comments" rows="2" placeholder="e.g., We love food tours and cultural sites, prefer trains over flights."
+                              class="mt-1 block w-full rounded-lg border-2 border-violet-200 shadow-sm p-3 focus:border-violet-500 focus:ring-violet-500 transition-colors"></textarea>
+                </div>
+                
+                <button type="submit" id="generate-itinerary-btn" 
+                        class="w-full bg-pink-500 text-white font-extrabold text-lg py-3 rounded-full shadow-xl hover:bg-pink-600 transition-all duration-300 transform hover:scale-[1.01] disabled:opacity-50 mt-8">
+                    Generate Itinerary
+                </button>
+            </form>
+        </div>
+
+        <!-- Right Column: Result/Itinerary Display -->
+        <div class="lg:col-span-1 bg-violet-50 p-6 rounded-xl shadow-lg border border-violet-200">
+             <h2 class="text-3xl font-extrabold text-gray-800 mb-4 border-b-2 border-violet-300 pb-2 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Your Personalized Trip
+            </h2>
+            
+            <div id="display-panel-container" class="min-h-[25rem] rounded-lg bg-white shadow-inner p-5 border border-violet-100 flex flex-col">
+                
+                <span id="display-panel-title" class="text-xl sm:text-2xl font-bold text-pink-600 mb-3 text-center border-b pb-2">
+                    Fill the form and click "Generate"
+                </span>
+                
+                <div id="display-panel-content" class="text-sm text-gray-700 text-left w-full mt-2 overflow-y-auto flex-grow h-full">
+                    <p class="text-center text-gray-500 italic pt-4">Your customized itinerary and budget breakdown will appear here.</p>
+                </div>
+                <div id="citation-container" class="text-xs text-gray-500 mt-4 border-t pt-2 w-full text-center"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration for the Gemini API
+        const API_KEY = ""; // Canvas will provide this at runtime
+        const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${AIzaSyCg4_K86m1Q5Fag5CN3WBxnwBVRBX01bCo}`;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const displayTitle = document.getElementById('display-panel-title');
+            const displayContent = document.getElementById('display-panel-content');
+            const citationContainer = document.getElementById('citation-container');
+            const travelForm = document.getElementById('travel-form');
+            const generateBtn = document.getElementById('generate-itinerary-btn');
+            
+            const defaultMessage = 'Fill the form and click "Generate"';
+
+            // --- UI Update Functions ---
+
+            const setLoadingState = (title) => {
+                displayTitle.innerHTML = `<div class="loader mx-auto mb-2"></div> ${title}...`;
+                displayContent.classList.remove('content-fade-in'); 
+                displayContent.textContent = "";
+                citationContainer.textContent = "";
+            };
+
+            // Utility for exponential backoff retry logic
+            const fetchWithRetry = async (url, options, maxRetries = 5) => {
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        const response = await fetch(url, options);
+                        
+                        // Check for successful status (200-299)
+                        if (response.ok) { 
+                            return response;
+                        }
+                        
+                        // If status is 429 (Too Many Requests), we retry. Otherwise, throw an immediate error.
+                        if (response.status !== 429) {
+                            console.error(`Attempt ${i + 1}: Non-retryable HTTP error ${response.status}.`);
+                            throw new Error(`API request failed with status: ${response.status}`);
+                        }
+                        
+                        console.warn(`Attempt ${i + 1}: Retrying due to status 429 (Too Many Requests)...`);
+
+                    } catch (error) {
+                        // Log unexpected errors but continue retrying network/transient issues
+                        if (i === maxRetries - 1) {
+                            console.error("Final attempt failed with error:", error);
+                        }
+                    }
+                    
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 500;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+                throw new Error("API request failed after multiple retries due to persistent network or API errors.");
+            };
+
+            const processApiResponse = (titleToUse, result) => {
+                const candidate = result.candidates?.[0];
+                
+                // 1. Clear previous animation and apply exit styling 
+                displayContent.classList.remove('content-fade-in');
+                displayContent.style.opacity = 0;
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const text = candidate.content.parts[0].text;
+                    displayTitle.textContent = titleToUse;
+                    
+                    let formattedHtml = '';
+                    const isItinerary = titleToUse.includes('Trip:');
+                    
+                    // Split content by major sections (H2 in markdown)
+                    const sections = text.split(/## /g).filter(s => s.trim() !== '');
+
+                    sections.forEach(section => {
+                        // Use a slightly more complex regex to ensure we capture the title and the rest of the content
+                        const sectionParts = section.match(/^([^ \n]+)([ \n]|$)([\s\S]*)/);
+                        if (!sectionParts) return;
+
+                        const sectionTitle = sectionParts[1].trim();
+                        let sectionContent = sectionParts[3].trim();
+                        
+                        // --- Enhanced Markdown Parsing ---
+
+                        // 1. Bolding/Emphasis
+                        sectionContent = sectionContent.replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-900 font-semibold">$1</strong>');
+                        
+                        // 2. H3 Styling
+                        sectionContent = sectionContent.replace(/### (.*?)(\n|$)/g, '<h4 class="text-lg font-bold text-violet-700 mt-4 mb-2">$1</h4>');
+
+                        // 3. Robust List Conversion (Unordered/Bulleted List)
+                        const unorderedListRegex = /((?:-|\*) (.*?)(?:\n|$))+/g;
+                        sectionContent = sectionContent.replace(unorderedListRegex, (match) => {
+                            const listClass = sectionTitle.includes('Budget') ? 'budget-list text-sm md:text-base' : 'clean-list';
+
+                            let listItems = match.trim().split('\n').map(item => {
+                                if (item.startsWith('- ') || item.startsWith('* ')) {
+                                    const content = item.substring(2).trim();
+                                    
+                                    if (sectionTitle.includes('Budget')) {
+                                        // Specific parsing for Budget items: look for common separators like ':', '—', '–', or '-'
+                                        // The regex below ensures the content is split only on the FIRST occurrence of a major separator
+                                        let parts = content.match(/([^:]+?)\s*[:—–-]\s*([\s\S]*)/);
+                                        let itemPart = content;
+                                        let costPart = '';
+
+                                        if (parts) {
+                                            itemPart = parts[1].trim();
+                                            costPart = parts[2].trim();
+                                        }
+
+                                        // Use flex to justify item and cost across the row
+                                        return `<li><span class="font-medium text-gray-800">${itemPart}</span><span class="font-bold text-violet-600">${costPart}</span></li>`;
+                                    } else {
+                                        // Standard list item (keep existing formatting)
+                                        return `<li>${content}</li>`;
+                                    }
+                                }
+                                return '';
+                            }).join('');
+                            
+                            return `<ul class="${listClass}">${listItems}</ul>\n`;
+                        });
+                        
+                        // 4. Convert remaining paragraphs
+                        sectionContent = sectionContent.split('\n\n').map(p => {
+                            const trimmedP = p.trim();
+                            // Only wrap if it's not already a heading or list element
+                            if (trimmedP && !trimmedP.startsWith('<h') && !trimmedP.startsWith('<ul') && !trimmedP.startsWith('<ol') && !trimmedP.startsWith('<div')) {
+                                return `<p class="mb-4 text-justify">${trimmedP}</p>`;
+                            }
+                            return p;
+                        }).join('\n');
+
+
+                        // --- Apply Section Wrapping (Itinerary vs. General) ---
+
+                        if (isItinerary && sectionTitle.startsWith('Day') && !isNaN(parseInt(sectionTitle.replace('Day', '').trim()))) {
+                            // Itinerary Day Card
+                            formattedHtml += `
+                                <div class="itinerary-day-card">
+                                    <h3 class="text-xl font-extrabold text-pink-600 mb-2 border-b border-pink-100 pb-1">${sectionTitle}</h3>
+                                    ${sectionContent}
+                                </div>
+                            `;
+                        } else {
+                            // General Sections (Budget)
+                            formattedHtml += `
+                                <div class="mb-6 pt-2">
+                                    <h3 class="text-xl font-extrabold text-pink-600 mt-6 mb-3 border-b border-pink-200 pb-1">${sectionTitle}</h3>
+                                    ${sectionContent}
+                                </div>
+                            `;
+                        }
+                    });
+
+                    // 2. Insert content and apply entry animation
+                    displayContent.innerHTML = `<div class="text-sm leading-relaxed">${formattedHtml}</div>`;
+                    
+                    requestAnimationFrame(() => {
+                        displayContent.style.opacity = 1; // Ensure full opacity
+                        displayContent.classList.add('content-fade-in');
+                    });
+                    
+                    // Extract grounding sources
+                    let sources = [];
+                    const groundingMetadata = candidate.groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                        sources = groundingMetadata.groundingAttributions
+                            .map(attribution => ({
+                                uri: attribution.web?.uri,
+                                title: attribution.web?.title,
+                            }))
+                            .filter(source => source.uri && source.title);
+                    }
+
+                    if (sources.length > 0) {
+                        citationContainer.innerHTML = 'Source: ' + sources.map(s => 
+                            `<a href="${s.uri}" target="_blank" class="text-violet-600 hover:text-pink-600 underline transition-colors">${s.title}</a>`
+                        ).join(' | ');
+                    } else {
+                        citationContainer.textContent = 'Data provided by Gemini, no external citation found.';
+                    }
+
+                } else {
+                    displayTitle.textContent = "Trip Generation Failed";
+                    displayContent.innerHTML = "<p class='text-red-500 text-center mt-4'>Sorry, I received a response but it was empty or unreadable. Please try again or simplify your request.</p>";
+                    citationContainer.textContent = "";
+                    console.error("API response lacked content candidate:", result);
+                }
+            };
+
+            const generateItinerary = async (event) => {
+                event.preventDefault(); // Prevent form default submission
+
+                const days = document.getElementById('travel-days').value;
+                const start = document.getElementById('start-location').value;
+                const destinations = document.getElementById('destinations').value;
+                const adults = document.getElementById('adults').value;
+                const children = document.getElementById('children').value;
+                const budget = document.getElementById('budget').value;
+                const comments = document.getElementById('extra-comments').value;
+                
+                // --- Client-side Input Validation ---
+                if (days < 1 || start.trim() === '' || destinations.trim() === '' || budget.trim() === '' || adults < 1) {
+                     displayTitle.textContent = "Input Error";
+                     displayContent.innerHTML = "<p class='text-red-500 text-center mt-4'>Please ensure all required fields (Days, Start, Destinations, Budget, Adults) are filled and valid.</p>";
+                     citationContainer.textContent = "";
+                     return;
+                }
+                if (isNaN(parseInt(days)) || isNaN(parseInt(adults)) || isNaN(parseInt(children))) {
+                     displayTitle.textContent = "Input Error";
+                     displayContent.innerHTML = "<p class='text-red-500 text-center mt-4'>Days, Adults, and Children must be valid numbers.</p>";
+                     citationContainer.textContent = "";
+                     return;
+                }
+
+                const finalTitle = `Personalized Trip: ${start} to ${destinations.split(',')[0].trim()}... (${days} Days)`;
+                
+                generateBtn.disabled = true; 
+                generateBtn.textContent = 'Generating Trip...';
+                setLoadingState(`Creating your ${days}-day personalized trip`);
+                
+                // System prompt for structure and persona - reinforced instruction to prevent pipe characters
+                const systemPrompt = "You are an expert Indian travel agent and trip planner. Your goal is to create a detailed, highly personalized travel itinerary and budget estimate based on the user's specific inputs. The plan must be feasible, realistic, and respect the budget and traveler preferences. STRUCTURE MANDATE: The detailed itinerary MUST use '## Day X' (e.g., '## Day 1') as the only major heading for each day, and the budget MUST use '## Budget Breakdown' as its major heading. **All daily plans and the Budget Breakdown MUST be presented using clean, short bulleted lists and markdown formatting (like **bolding**).** Ensure the '## Budget Breakdown' section uses a simple, single-line bulleted list. Each bullet point MUST be a simple key-value pair separated only by a colon or dash (e.g., '- Accommodation: 15,000 INR'). ABSOLUTELY DO NOT use pipe (|) characters, tables, or complex layout formatting in any section, especially the budget breakdown.";
+                
+                const travelerSummary = adults > 0 
+                    ? `${adults} adults` + (children > 0 ? ` and ${children} children` : '')
+                    : '1 adult (default)';
+
+                const userQuery = `Create a comprehensive travel plan.
+                    - Duration: ${days} days.
+                    - Travelers: ${travelerSummary}.
+                    - Starting Point: ${start}.
+                    - Destinations to cover: ${destinations}.
+                    - Total Max Budget: ${budget}.
+                    - Preferences/Comments: ${comments || 'None specified.'}.
+                    
+                    Follow the structure mandate: use '## Day X' for itinerary and '## Budget Breakdown' for the estimate. Use bullet points extensively.`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: userQuery }] }],
+                    // Use Google Search grounding to ensure the itinerary is based on current, real-world information (e.g., feasibility, travel times, budgets).
+                    tools: [{ "google_search": {} }], 
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                };
+                
+                try {
+                     const response = await fetchWithRetry(TEXT_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    // If fetchWithRetry returned, it means response.ok is true.
+                    const result = await response.json();
+                    processApiResponse(finalTitle, result); 
+
+                } catch (error) {
+                    console.error("API Itinerary Fetch Error:", error);
+                    displayTitle.textContent = "Trip Generation Failed";
+                    displayContent.innerHTML = `<p class='text-red-500 text-center mt-4'>Error creating the trip plan: ${error.message}. This might be a temporary API or network issue. Please try again in a moment.</p>`;
+                    citationContainer.textContent = "";
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Generate Itinerary';
+                }
+            };
+            
+            // Attach event listener to the form submission
+            travelForm.addEventListener('submit', generateItinerary);
+            
+            // Initial UI setup
+            displayTitle.textContent = defaultMessage;
+        });
+    </script>
+    </div>
+    <div>
+     <a class= "buton" href="main text.html" padding-left="50px">
+      <button class="button">🔙 Return to homepage</button>
+    </a>
+    </div>
+</body>
+</html>

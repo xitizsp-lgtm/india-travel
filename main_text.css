@@ -1,0 +1,52 @@
+body {
+  font-family: sans-serif;
+  margin: 20px;
+  background-color: rgb(9, 77, 102);
+}
+svg path {
+  fill: #00394f;
+  stroke: #eee;
+  stroke-width: 0.5;
+}
+svg path:hover {
+  fill: #006284;
+  transition: 0.6s;
+  cursor: pointer;
+  border-color: black;
+}
+.search-bar {
+  width: 100%;
+  max-width: 700px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  border-radius: 60px;
+  padding: 10px 20px;
+  backdrop-filter: blur(4px) saturate(180%);
+}
+.search-bar input {
+  background: transparent;
+  flex: 1;
+  outline: none;
+  padding: 24px 20px;
+  font-size: 20px;
+  color: #cac7ff;
+  border-radius: 60px;
+  border-color: transparent;
+}
+.search-bar button img {
+  width: 25px;
+}
+.search-bar button {
+  border: 0;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  background: #58629b;
+  cursor: pointer;
+}
+.boton{
+  max-width: 150px;
+  max-height: 150px;
+  border-radius: 400px;
+}
