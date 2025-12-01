@@ -180,10 +180,11 @@
 
     <script>
         // Configuration for the Gemini API
-        // 🚨 IMPORTANT: When running locally (outside of Canvas), you must replace the
-        // placeholder string below with your actual Gemini API key for the API calls to work.
-        // DO NOT share your API key publicly.
-        const API_KEY = "AIzaSyBurJL7O6Knz7niSVJePfzj6T3RmJGvI90"; // <-- Placeholder for your API Key 
+        // PASTE YOUR API KEY HERE: Replace the empty string "" with your actual Gemini API Key.
+        // ⚠️ CRITICAL SECURITY WARNING: NEVER commit a real API key to a public GitHub repository or deploy this file publicly.
+        // For public deployment, you must use a backend proxy or serverless function to hide the key.
+        const YOUR_GEMINI_API_KEY = "AIzaSyAPMb71QTq655tPTkuKEAmC55SKOYQqLk0"; // <-- PASTE YOUR KEY HERE
+        const API_KEY = YOUR_GEMINI_API_KEY; 
         const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -217,8 +218,10 @@
                         
                         // If status is 429 (Too Many Requests), we retry. Otherwise, throw an immediate error.
                         if (response.status !== 429) {
-                            console.error(`Attempt ${i + 1}: Non-retryable HTTP error ${response.status}.`);
-                            throw new Error(`API request failed with status: ${response.status}`);
+                            // If it's a 400-level error that's not 429, it's usually a bad request or auth issue.
+                            const errorData = await response.json().catch(() => ({}));
+                            const errorMessage = errorData.error?.message || `API request failed with status: ${response.status}`;
+                            throw new Error(errorMessage);
                         }
                         
                         console.warn(`Attempt ${i + 1}: Retrying due to status 429 (Too Many Requests)...`);
@@ -227,6 +230,10 @@
                         // Log unexpected errors but continue retrying network/transient issues
                         if (i === maxRetries - 1) {
                             console.error("Final attempt failed with error:", error);
+                        }
+                        // Re-throw if it's a non-retryable error (not a network issue on retry)
+                        if (error.message && !error.message.includes('Too Many Requests') && i === maxRetries - 1) {
+                             throw error;
                         }
                     }
                     
@@ -403,6 +410,15 @@
                 generateBtn.textContent = 'Generating Trip...';
                 setLoadingState(`Creating your ${days}-day personalized trip`);
                 
+                // Check if API key is missing before trying to fetch
+                if (!API_KEY) { 
+                    displayTitle.textContent = "API Key Required";
+                    displayContent.innerHTML = "<p class='text-red-500 text-center mt-4 font-bold'>Please paste your Gemini API Key into the script section of this file.</p>";
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Generate Itinerary';
+                    return;
+                }
+
                 // System prompt for structure and persona - reinforced instruction to prevent pipe characters
                 const systemPrompt = "You are an expert Indian travel agent and trip planner. Your goal is to create a detailed, highly personalized travel itinerary and budget estimate based on the user's specific inputs. The plan must be feasible, realistic, and respect the budget and traveler preferences. STRUCTURE MANDATE: The detailed itinerary MUST use '## Day X' (e.g., '## Day 1') as the only major heading for each day, and the budget MUST use '## Budget Breakdown' as its major heading. **All daily plans and the Budget Breakdown MUST be presented using clean, short bulleted lists and markdown formatting (like **bolding**).** Ensure the '## Budget Breakdown' section uses a simple, single-line bulleted list. Each bullet point MUST be a simple key-value pair separated only by a colon or dash (e.g., '- Accommodation: 15,000 INR'). ABSOLUTELY DO NOT use pipe (|) characters, tables, or complex layout formatting in any section, especially the budget breakdown.";
                 
@@ -427,16 +443,6 @@
                     systemInstruction: { parts: [{ text: systemPrompt }] },
                 };
                 
-                // Check if API key is missing before trying to fetch
-                const PLACEHOLDER_KEY = "YOUR_GEMINI_API_KEY_HERE";
-                if (API_KEY === "" || API_KEY === PLACEHOLDER_KEY) { 
-                    displayTitle.textContent = "API Key Required";
-                    displayContent.innerHTML = "<p class='text-red-500 text-center mt-4 font-bold'>The application requires a valid API key to function.</p><p class='text-center mt-2'>Please replace the placeholder 'YOUR_GEMINI_API_KEY_HERE' in the JavaScript code with your actual Gemini API key.</p>";
-                    generateBtn.disabled = false;
-                    generateBtn.textContent = 'Generate Itinerary';
-                    return;
-                }
-
                 try {
                      const response = await fetchWithRetry(TEXT_API_URL, {
                         method: 'POST',
@@ -451,7 +457,7 @@
                 } catch (error) {
                     console.error("API Itinerary Fetch Error:", error);
                     displayTitle.textContent = "Trip Generation Failed";
-                    displayContent.innerHTML = `<p class='text-red-500 text-center mt-4'>Error creating the trip plan: ${error.message}.</p><p class='text-center mt-2'>Please double-check that your Gemini API key is valid and correctly placed in the script section.</p>`;
+                    displayContent.innerHTML = `<p class='text-red-500 text-center mt-4'>Error creating the trip plan: ${error.message}.</p><p class='text-center mt-2'>This may indicate an invalid API key, rate limiting, or a network issue.</p>`;
                     citationContainer.textContent = "";
                 } finally {
                     generateBtn.disabled = false;
@@ -466,8 +472,5 @@
             displayTitle.textContent = defaultMessage;
         });
     </script>
-    <a class="button" href="index.html">
-      <button class="button">🔙 Return to homepage</button>
-    </a>
 </body>
 </html>
