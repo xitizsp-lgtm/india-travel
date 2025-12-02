@@ -179,13 +179,10 @@
     </div>
 
     <script>
-        // Configuration for the Gemini API
-        // PASTE YOUR API KEY HERE: Replace the empty string "" with your actual Gemini API Key.
-        // ⚠️ CRITICAL SECURITY WARNING: NEVER commit a real API key to a public GitHub repository or deploy this file publicly.
-        // For public deployment, you must use a backend proxy or serverless function to hide the key.
-        const YOUR_GEMINI_API_KEY = "AIzaSyAPMb71QTq655tPTkuKEAmC55SKOYQqLk0"; // <-- PASTE YOUR KEY HERE
-        const API_KEY = YOUR_GEMINI_API_KEY; 
-        const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
+        // Backend API URL: this client calls a serverless function which holds the real Gemini API key.
+        // Deploy this project to Vercel and set the secret `GEMINI_API_KEY` in Vercel's dashboard.
+        // The serverless function `api/api.js` will forward requests to Gemini using that secret.
+        const BACKEND_API_URL = '/api/generate';
 
         document.addEventListener('DOMContentLoaded', () => {
             const displayTitle = document.getElementById('display-panel-title');
@@ -410,14 +407,8 @@
                 generateBtn.textContent = 'Generating Trip...';
                 setLoadingState(`Creating your ${days}-day personalized trip`);
                 
-                // Check if API key is missing before trying to fetch
-                if (!API_KEY) { 
-                    displayTitle.textContent = "API Key Required";
-                    displayContent.innerHTML = "<p class='text-red-500 text-center mt-4 font-bold'>Please paste your Gemini API Key into the script section of this file.</p>";
-                    generateBtn.disabled = false;
-                    generateBtn.textContent = 'Generate Itinerary';
-                    return;
-                }
+                // Client no longer contains API keys — requests are proxied to the serverless function.
+                // Proceed to call the backend which will add the server-side GEMINI key.
 
                 // System prompt for structure and persona - reinforced instruction to prevent pipe characters
                 const systemPrompt = "You are an expert Indian travel agent and trip planner. Your goal is to create a detailed, highly personalized travel itinerary and budget estimate based on the user's specific inputs. The plan must be feasible, realistic, and respect the budget and traveler preferences. STRUCTURE MANDATE: The detailed itinerary MUST use '## Day X' (e.g., '## Day 1') as the only major heading for each day, and the budget MUST use '## Budget Breakdown' as its major heading. **All daily plans and the Budget Breakdown MUST be presented using clean, short bulleted lists and markdown formatting (like **bolding**).** Ensure the '## Budget Breakdown' section uses a simple, single-line bulleted list. Each bullet point MUST be a simple key-value pair separated only by a colon or dash (e.g., '- Accommodation: 15,000 INR'). ABSOLUTELY DO NOT use pipe (|) characters, tables, or complex layout formatting in any section, especially the budget breakdown.";
@@ -444,7 +435,7 @@
                 };
                 
                 try {
-                     const response = await fetchWithRetry(TEXT_API_URL, {
+                                         const response = await fetchWithRetry(BACKEND_API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
