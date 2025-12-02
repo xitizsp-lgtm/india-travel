@@ -179,10 +179,9 @@
     </div>
 
     <script>
-        // Backend API URL: this client calls a serverless function which holds the real Gemini API key.
-        // Deploy this project to Vercel and set the secret `GEMINI_API_KEY` in Vercel's dashboard.
-        // The serverless function `api/api.js` will forward requests to Gemini using that secret.
-        const BACKEND_API_URL = '/api/generate';
+        // Backend API URL: this client calls the Vercel deployment which holds the real Gemini API key.
+        // Change this to your deployed Vercel URL if different.
+        const BACKEND_API_URL = 'https://india-travel-tau.vercel.app/api/generate';
 
         document.addEventListener('DOMContentLoaded', () => {
             const displayTitle = document.getElementById('display-panel-title');

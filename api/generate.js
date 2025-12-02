@@ -4,6 +4,18 @@
 // the API response body and status code back to the client.
 
 export default async function handler(req, res) {
+  // Basic CORS handling so this endpoint can be called from GitHub Pages or other origins.
+  // For production restrict `allowedOrigin` to your specific origin instead of '*'.
+  const allowedOrigin = '*';
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    // Preflight request
+    return res.status(204).end();
+  }
+
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
     return res.status(405).json({ error: 'Method Not Allowed' });
